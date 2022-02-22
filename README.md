@@ -65,8 +65,7 @@ make -C /lib/modules/$(uname -r)/build M=$(pwd) modules
 ```
 
 -------
-### If your system is using secure boot, continue normally to Step #3.
-#### If you don't use secure boot, you can skip the 3rd and go to Step #4.
+### If your system is not using secure boot, skip Step #3 and go to Step #4.
 
 Check if your system uses secure boot:
 ```bash
@@ -152,6 +151,8 @@ sudo curl -s https://raw.githubusercontent.com/Realtek-OpenSource/android_hardwa
 Last thing to do is restart your computer and the bluetooth on your UB500 should be working perfectly fine!
 
 ## Credits:
+
+Thanks @Pilot6!
 
 https://askubuntu.com/questions/1370663/bluetooth-scan-doesnt-detect-any-device-on-ubuntu-21-10
 
