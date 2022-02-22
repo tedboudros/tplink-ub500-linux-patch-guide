@@ -58,7 +58,7 @@ sudo cp btusb.ko /lib/modules/$(uname -r)/kernel/drivers/bluetooth
 ```
 
 **If your system is using secure boot, continue normally to Step #3.
-If you don't use secure boot, you can skip the 4th and go to Step #4.**
+If you don't use secure boot, you can skip the 3rd and go to Step #4.**
 
 To check if your system uses secure boot, run:
 ```bash
