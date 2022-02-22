@@ -149,6 +149,9 @@ And that's pretty much it!
 Last thing to do is restart your computer one final time, and the bluetooth from your UB500 should be working perfectly fine!
 
 ## Huge props to:
+
 https://askubuntu.com/questions/1370663/bluetooth-scan-doesnt-detect-any-device-on-ubuntu-21-10
+
 https://github.com/TheSonicMaster/rtl8761b-fw-installer
+
 https://ubuntu.com/blog/how-to-sign-things-for-secure-boot
