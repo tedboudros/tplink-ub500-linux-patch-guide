@@ -1,30 +1,36 @@
-# TP-Link UB500 (rtl8761b) Linux <5.16 Kernel Patch Guide
+# TP-Link UB500 (rtl8761b) Linux <5.16 Kernel Patch Guide 🚀
+### If you're using kernel version > 5.16, this patch should already be working out of the box, you do not need to continue with this guide.
 
 
-## Step #1. Downloading and patching the kernel
+## Step #1. ⬇️ Downloading and patching the kernel
 First, find out the kernel version you are currently using.
-You can check this by running:
-```bash
+Check this by running:
+```sh
 uname -r
 ```
-If you're using kernel version > 5.16, this patch should already be working out of the box, you do not need to continue with this guide, something else is wrong.
+Then download the linux kernel, extract and enter the directory:
 
-Then download and extract and enter the directory of the according kernel by doing:
+<br/>
 
-> Example kernel version (5.11)
+> Example linux kernel version (5.11)
 
-```bash
+(Replace linux-**5.11**.tar.xz with your own kernel version)
+
+```sh
 wget https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-5.11.tar.xz
 tar xpvf linux-5.11.tar.xz
 cd linux-5.11/drivers/bluetooth
 ```
 
-It's now time to edit the `btusb.c` file, which is the file that contains info about the bluetooth dongles' configurations.
-```bash
+-------
+
+Edit `btusb.c`:
+
+```sh
 nano btusb.c
 ```
 
-Add this just before the line that says `/* Silicon Wave based devices */`:
+Add this, just before the line: `/* Silicon Wave based devices */`:
 
 
 ```c
@@ -32,7 +38,9 @@ Add this just before the line that says `/* Silicon Wave based devices */`:
 { USB_DEVICE(0x2357, 0x0604), .driver_info = BTUSB_REALTEK },
 ```
 
-Depending on the kernel version you're using, you also might need to change the following inside the `hci_ldisc.c` file:
+
+-------
+Depending on the kernel version you're using, you also might need to change the following inside `hci_ldisc.c`:
 
 ```c
 static ssize_t hci_uart_tty_read(struct tty_struct *tty, struct file *file,
@@ -45,28 +53,28 @@ static ssize_t hci_uart_tty_read(struct tty_struct *tty, struct file *file,
                  void **cookie, unsigned long offset)
 ```
 
-## Step #2. Compiling and updating the kernel
+## Step #2. 🔱 Compiling and updating the kernel
 
-Let's now compile our changes and update the kernel!
+Compile the changed files:
 
 ```bash
 make -C /lib/modules/$(uname -r)/build M=$(pwd) clean
 cp /usr/src/linux-headers-$(uname -r)/.config ./
 cp /usr/src/linux-headers-$(uname -r)/Module.symvers Module.symvers
 make -C /lib/modules/$(uname -r)/build M=$(pwd) modules
-sudo cp btusb.ko /lib/modules/$(uname -r)/kernel/drivers/bluetooth
 ```
 
-**If your system is using secure boot, continue normally to Step #3.
-If you don't use secure boot, you can skip the 3rd and go to Step #4.**
+-------
+### If your system is using secure boot, continue normally to Step #3.
+#### If you don't use secure boot, you can skip the 3rd and go to Step #4.
 
-To check if your system uses secure boot, run:
+Check if your system uses secure boot:
 ```bash
 sudo mokutil --sb-state
 ```
 
-## Step #3. Adding a key to the UEFI and signing our kernel module.
-Go ahead and make a new `openssl.cnf` file and copy paste the following:
+## Step #3. 🔐 Adding a key to the UEFI and signing our kernel module.
+Make a new `openssl.cnf` file and copy paste the following:
 ```bash
 # This definition stops the following lines choking if HOME isn't
 # defined.
@@ -93,9 +101,9 @@ basicConstraints        = critical,CA:FALSE
 extendedKeyUsage        = codeSigning,1.3.6.1.4.1.311.10.3.6,1.3.6.1.4.1.2312.16.1.2
 nsComment               = "OpenSSL Generated Certificate"
 ```
-At this point, you should take some time to switch your own details under the `[ req_distinguished_name ]` section.
+Take some time to edit your own details under the `[ req_distinguished_name ]` section.
 
-After that, make the keys:
+Make the public & private keys:
 ```bash
 openssl req -config ./openssl.cnf \
         -new -x509 -newkey rsa:2048 \
@@ -104,51 +112,46 @@ openssl req -config ./openssl.cnf \
         -out "MOK.der"
 ```
 
-Install key: (this will ask for a password, make sure you use one that you write down, you will need it later):
+Install public key to the UEFI: (this will ask for a password, use one that you write down, you will need it later):
 ```bash
 sudo mokutil --import MOK.der
 ```
-Before continuing with this guide, you need to restart your computer.
-Just before the boot begins, you should be greeted with a screen that says **Enroll MOK**.
+Before continuing, restart your computer.
 
-Here you follow the steps and at the end of the prompt, it will ask you to input the password you wrote down before.
+Just before the boot begins, you will be greeted with a screen that says **Enroll MOK**.
+
+Follow the steps on-screen and at the end of the prompt, it will ask you to input the password you wrote down before.
 
 -----
 
 
-To sign the compiled patched file `btusb.ko`, go into the folder we edited and compiled it
+Sign the compiled patched file `btusb.ko`:
 `linux-5.11/drivers/bluetooth` and run
 ```bash
 kmodsign sha512 MOK.priv MOK.der btusb.ko
 ```
 
 
-## Step #4. Installing the kernel module and the firmware
+## Step #4. ➡️ Installing the kernel module and the firmware
 
-To install the patched kernel module, do:
+Install the patched kernel module:
 ```bash
 sudo cp btusb.ko /lib/modules/$(uname -r)/kernel/drivers/bluetooth
-
 sudo modprobe -r btusb
 sudo modprobe -v btusb
 ```
 
-After that, the final thing to do would be to install the bluetooth dongle's firmware.
-
-To do that, do:
+Finally, install the bluetooth dongle's firmware:
 ```bash
 sudo mkdir -p /lib/firmware/rtl_bt
 sudo curl -s https://raw.githubusercontent.com/Realtek-OpenSource/android_hardware_realtek/rtk1395/bt/rtkbt/Firmware/BT/rtl8761b_fw -o /lib/firmware/rtl_bt/rtl8761b_fw.bin
 ```
 
 ---
-## The end...
+## You're ready to go! 📈
+Last thing to do is restart your computer and the bluetooth on your UB500 should be working perfectly fine!
 
-And that's pretty much it!
-
-Last thing to do is restart your computer one final time, and the bluetooth from your UB500 should be working perfectly fine!
-
-## Huge props to:
+## Credits:
 
 https://askubuntu.com/questions/1370663/bluetooth-scan-doesnt-detect-any-device-on-ubuntu-21-10
 
